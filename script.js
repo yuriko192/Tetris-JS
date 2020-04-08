@@ -1,17 +1,16 @@
 /*
-needs ghost block
-harddrop << put block on ghost block location
+remake render board to only show 20.2 block
 */
 
 //Constant for option
 const QUEUE_LENGTH = 4;
-const CANVAS_SIZE = 80;
+const CANVAS_SIZE = 80; //hold and queue canvas sizes
 const HOLD_BLOCK_SIZE = CANVAS_SIZE / 4;
 
 //get html elements
 const canvas = document.getElementById("mainarea");
 canvas.width = board.size * board.width;
-canvas.height = board.size * board.height;
+canvas.height = (board.size - 3.8) * board.height;
 const g = canvas.getContext("2d");
 
 const queue_canvas = [];
@@ -54,12 +53,17 @@ update();
 function drawboard() {
     g.clearRect(0, 0, canvas.width, canvas.height);
     g.strokeStyle = "black";
+    for (let ii = 0; ii < board.width; ii++) {
+        g.strokeRect(ii * r, 0, r, 0.2 * r);
+        g.fillStyle = board.arr[3][ii] === "" ? "grey" : board.arr[3][ii];
+        g.fillRect(ii * r, 0, r, 0.2 * r);
+    }
 
-    for (let i = 0; i < board.height; i++) {
+    for (let i = 3; i < board.height; i++) {
         for (let ii = 0; ii < board.width; ii++) {
-            g.strokeRect(ii * r, i * r, r, r);
+            g.strokeRect(ii * r, (i - 3.8) * r, r, r);
             g.fillStyle = board.arr[i][ii] === "" ? "grey" : board.arr[i][ii];
-            g.fillRect(ii * r, i * r, r, r);
+            g.fillRect(ii * r, (i - 3.8) * r, r, r);
         }
     }
 }
@@ -73,10 +77,8 @@ function draw() {
 
     for (let i = 0; i < 4; i++) {
         for (let ii = 0; ii < 4; ii++) {
-            if (y + i > -1) {
-                if (tetrimos_list[curr].blocks[rotation] & bit) {
-                    g.fillRect((x + ii) * r, (y + i) * r, r, r);
-                }
+            if (tetrimos_list[curr].blocks[rotation] & bit) {
+                g.fillRect((x + ii) * r, (y + i - 3.8) * r, r, r);
             }
             bit = bit >> 1;
         }
@@ -130,7 +132,7 @@ function draw_shadow() {
     for (let i = 0; i < 4; i++) {
         for (let ii = 0; ii < 4; ii++) {
             if (tetrimos_list[curr].blocks[rotation] & bit) {
-                g.fillRect((x + ii) * r, (y + i) * r, r, r);
+                g.fillRect((x + ii) * r, (y + i - 3.8) * r, r, r);
             }
             bit = bit >> 1;
         }
@@ -168,14 +170,13 @@ function initial() {
 function update() {
     move(0, 1);
 
-    setTimeout("update()", 100);
+    setTimeout("update()", 1000);
 }
 
 function taketetrimos() {
     if (bag.length == 0) {
         bag = [0, 1, 2, 3, 4, 5, 6];
     }
-    console.log(bag);
     let randd = Math.sin(seed++) * 10000;
     let x = Math.floor((randd - Math.floor(randd)) * bag.length);
     let y = bag[x];
@@ -183,11 +184,21 @@ function taketetrimos() {
     return y;
 }
 
+function lose(temp) {
+    if (!checkposition(tetrimos_list[temp].blocks[rotation])) {
+        console.log("lost");
+        initial();
+    }
+}
+
 //get tetrimo from queue, and add queue
 function pop(x) {
     x.unshift(taketetrimos());
     let temp = x.pop();
     resetloc(temp);
+    //check win/lose here
+    console.log(curr);
+    lose(temp);
     draw_queue();
     return temp;
 }
@@ -197,18 +208,14 @@ function fillblock() {
     let y = poss.y;
     let bit = 0x8000;
 
-    try {
-        for (let i = 0; i < 4; i++) {
-            for (let ii = 0; ii < 4; ii++) {
-                if (tetrimos_list[curr].blocks[rotation] & bit) {
-                    board.arr[y + i][x + ii] = tetrimos_list[curr].color;
-                }
-
-                bit = bit >> 1;
+    for (let i = 0; i < 4; i++) {
+        for (let ii = 0; ii < 4; ii++) {
+            if (tetrimos_list[curr].blocks[rotation] & bit) {
+                board.arr[y + i][x + ii] = tetrimos_list[curr].color;
             }
+
+            bit = bit >> 1;
         }
-    } catch (exc) {
-        initial();
     }
 
     curr = pop(tetri_queue);
@@ -272,7 +279,8 @@ function update_shadow() {
 //==============================Movement Function===============================
 function resetloc(block) {
     rotation = 0;
-    poss.y = -2;
+
+    poss.y = 2;
 
     if (block == 3) {
         poss.x = Math.floor(board.width / 2 - 1);
@@ -334,11 +342,6 @@ function move(newx, newy) {
                         }
                     }
                 } else {
-                    if (board.arr[0][x + ii] != "") {
-                        //block isn't placeable before game starts
-                        console.log("lost");
-                        initial();
-                    }
                 }
             }
             bit = bit >> 1;
