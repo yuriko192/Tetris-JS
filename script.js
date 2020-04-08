@@ -174,7 +174,7 @@ function initial() {
 function update() {
     move(0, 1);
 
-    setTimeout("update()", 10);
+    setTimeout("update()", 100);
 }
 
 function taketetrimos() {
