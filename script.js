@@ -1,4 +1,20 @@
 /*
+ad UI, menu, game over screen
+add sound effect
+add lighting effect
+//line clear effect:
+    for each line cleared
+    set line to grey
+    create a white flash along the line
+    unshift line
+
+add simple scoring system:
+    for each line cleared
+    add 1 to the counter
+    for each line cleared counter
+    sum the total of line cleared
+
+    if a line is not cleared on drop, reset counter
 
 */
 
