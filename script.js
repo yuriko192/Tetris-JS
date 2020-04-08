@@ -1,16 +1,17 @@
 /*
-remake render board to only show 20.2 block
+
 */
 
 //Constant for option
 const QUEUE_LENGTH = 4;
 const CANVAS_SIZE = 80; //hold and queue canvas sizes
 const HOLD_BLOCK_SIZE = CANVAS_SIZE / 4;
+const HIDDEN_ROWS = 3.8;
 
 //get html elements
 const canvas = document.getElementById("mainarea");
 canvas.width = board.size * board.width;
-canvas.height = (board.size - 3.8) * board.height;
+canvas.height = (board.size - HIDDEN_ROWS) * board.height;
 const g = canvas.getContext("2d");
 
 const queue_canvas = [];
@@ -55,15 +56,18 @@ function drawboard() {
     g.strokeStyle = "black";
     for (let ii = 0; ii < board.width; ii++) {
         g.strokeRect(ii * r, 0, r, 0.2 * r);
-        g.fillStyle = board.arr[3][ii] === "" ? "grey" : board.arr[3][ii];
+        g.fillStyle =
+            board.arr[Math.floor(HIDDEN_ROWS)][ii] === ""
+                ? "grey"
+                : board.arr[Math.floor(HIDDEN_ROWS)][ii];
         g.fillRect(ii * r, 0, r, 0.2 * r);
     }
 
     for (let i = 3; i < board.height; i++) {
         for (let ii = 0; ii < board.width; ii++) {
-            g.strokeRect(ii * r, (i - 3.8) * r, r, r);
+            g.strokeRect(ii * r, (i - HIDDEN_ROWS) * r, r, r);
             g.fillStyle = board.arr[i][ii] === "" ? "grey" : board.arr[i][ii];
-            g.fillRect(ii * r, (i - 3.8) * r, r, r);
+            g.fillRect(ii * r, (i - HIDDEN_ROWS) * r, r, r);
         }
     }
 }
@@ -78,7 +82,7 @@ function draw() {
     for (let i = 0; i < 4; i++) {
         for (let ii = 0; ii < 4; ii++) {
             if (tetrimos_list[curr].blocks[rotation] & bit) {
-                g.fillRect((x + ii) * r, (y + i - 3.8) * r, r, r);
+                g.fillRect((x + ii) * r, (y + i - HIDDEN_ROWS) * r, r, r);
             }
             bit = bit >> 1;
         }
@@ -132,7 +136,7 @@ function draw_shadow() {
     for (let i = 0; i < 4; i++) {
         for (let ii = 0; ii < 4; ii++) {
             if (tetrimos_list[curr].blocks[rotation] & bit) {
-                g.fillRect((x + ii) * r, (y + i - 3.8) * r, r, r);
+                g.fillRect((x + ii) * r, (y + i - HIDDEN_ROWS) * r, r, r);
             }
             bit = bit >> 1;
         }
@@ -170,7 +174,7 @@ function initial() {
 function update() {
     move(0, 1);
 
-    setTimeout("update()", 1000);
+    setTimeout("update()", 10);
 }
 
 function taketetrimos() {
@@ -378,8 +382,8 @@ function move(newx, newy) {
                 put_counter.onmessage = (e) => {
                     fillblock();
                     try {
-                        fillingtick.terminate();
-                        fillingtick = undefined;
+                        put_counter.terminate();
+                        put_counter = undefined;
                     } catch (exc) {}
                 };
             }
